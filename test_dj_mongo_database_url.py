@@ -1,48 +1,57 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
 import os
+import unittest
 
-try:
-	import urlparse
-except ImportError:
-	import urllib.parse as urlparse
+import dj_mongo_database_url
 
 
-DEFAULT_ENV = 'MONGO_DATABASE_URL'
-
-def config(env=DEFAULT_ENV, default=None):
-	"""Returns configured DATABASE dictionary from MONGO_DATABASE_URL."""
-
-	config = {}
-
-	s = os.environ.get(env, default)
-
-	if s:
-		config = parse(s)
-
-	return config
+MONGOLAB_URL = "mongodb://username:password@ds029297.mongolab.com:29297/my_db"
 
 
-def parse(url):
-	"""Parses a database URL."""
+class DatabaseTestSuite(unittest.TestCase):
 
-	config = {}
+    def test_truth(self):
+        assert True
 
-	url = urlparse.urlparse(url)
+    def test_mongodb_parsing(self):
+        url = 'mongodb://username:password@ds029297.mongolab.com:29297/my_db?my_option=true'
+        url = dj_mongo_database_url.parse(url)
 
-	# Remove query strings.
-	path = url.path[1:]
-	path = path.split('?', 2)[0]
-	path = path.split("/", 1)
+        assert url['NAME'] == 'my_db'
+        assert url['HOST'] == 'ds029297.mongolab.com'
+        assert url['USER'] == 'username'
+        assert url['PASSWORD'] == 'password'
+        assert url['PORT'] == 29297
+        assert url['COLLECTION'] == None
 
-	# Update with environment configuration.
-	config.update({
-		'NAME': path[0],
-		'USER': url.username,
-		'PASSWORD': url.password,
-		'HOST': url.hostname,
-		'PORT': url.port,
-		'COLLECTION': path[1] if len(path) > 1 else None,
-	})
+    def test_database_url(self):
+        a = dj_mongo_database_url.config()
+        assert not a
 
-	return config
+        os.environ['MONGO_DATABASE_URL'] = 'mongodb://username:password@ds029297.mongolab.com:29297/my_db'
+
+        url = dj_mongo_database_url.config()
+
+        assert url['NAME'] == 'my_db'
+        assert url['HOST'] == 'ds029297.mongolab.com'
+        assert url['USER'] == 'username'
+        assert url['PASSWORD'] == 'password'
+        assert url['PORT'] == 29297
+        assert url['COLLECTION'] == None
+		
+    def test_extended_database_url(self):
+        url = 'mongodb://username:password@ds029297.mongolab.com:29297/my_db/my_collection?my_option=true'
+        url = dj_mongo_database_url.parse(url)
+
+        assert url['NAME'] == 'my_db'
+        assert url['HOST'] == 'ds029297.mongolab.com'
+        assert url['USER'] == 'username'
+        assert url['PASSWORD'] == 'password'
+        assert url['PORT'] == 29297
+        assert url['COLLECTION'] == 'my_collection'
+
+
+if __name__ == '__main__':
+    unittest.main()
