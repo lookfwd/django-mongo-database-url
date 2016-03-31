@@ -33,14 +33,16 @@ def parse(url):
 	# Remove query strings.
 	path = url.path[1:]
 	path = path.split('?', 2)[0]
+	path = path.split("/", 1)
 
 	# Update with environment configuration.
 	config.update({
-		'NAME': path,
+		'NAME': path[0],
 		'USER': url.username,
 		'PASSWORD': url.password,
 		'HOST': url.hostname,
 		'PORT': url.port,
+		'COLLECTION': path[1] if len(path) > 1 else None,
 	})
 
 	return config
