@@ -24,6 +24,7 @@ class DatabaseTestSuite(unittest.TestCase):
         assert url['USER'] == 'username'
         assert url['PASSWORD'] == 'password'
         assert url['PORT'] == 29297
+        assert url['COLLECTION'] == None
 
     def test_database_url(self):
         a = dj_mongo_database_url.config()
@@ -38,6 +39,18 @@ class DatabaseTestSuite(unittest.TestCase):
         assert url['USER'] == 'username'
         assert url['PASSWORD'] == 'password'
         assert url['PORT'] == 29297
+        assert url['COLLECTION'] == None
+		
+    def test_extended_database_url(self):
+        url = 'mongodb://username:password@ds029297.mongolab.com:29297/my_db/my_collection?my_option=true'
+        url = dj_mongo_database_url.parse(url)
+
+        assert url['NAME'] == 'my_db'
+        assert url['HOST'] == 'ds029297.mongolab.com'
+        assert url['USER'] == 'username'
+        assert url['PASSWORD'] == 'password'
+        assert url['PORT'] == 29297
+        assert url['COLLECTION'] == 'my_collection'
 
 
 if __name__ == '__main__':
